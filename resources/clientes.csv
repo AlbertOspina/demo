@@ -1,0 +1,5 @@
+id,nombre,apellido,email,telefono,activo
+1,Juan,Perez,juan.perez@example.com,555-1234,True
+2,Maria,Gomez,maria.gomez@example.com,555-5678,True
+3,Carlos,Lopez,carlos.lopez@example.com,555-9012,False
+4,Laura,Rodriguez,laura.rodriguez@example.com,555-3456,True
