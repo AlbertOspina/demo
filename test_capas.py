@@ -28,7 +28,7 @@ def test_api_rest():
     res = client.get("/api/clientes")
     assert res.status_code == 200
     json_data = res.get_json()
-    assert json_data["exito"] is True
+    assert json_data["code"] == 200
     assert json_data["total"] == 0
     print("  [OK] Retornó lista vacía con status 200.")
 
@@ -43,8 +43,8 @@ def test_api_rest():
     res = client.post("/api/clientes", json=nuevo_cliente)
     assert res.status_code == 201
     json_data = res.get_json()
-    assert json_data["exito"] is True
-    cliente_id = json_data["datos"]["id"]
+    assert json_data["code"] == 201
+    cliente_id = json_data["data"]["id"]
     print(f"  [OK] Cliente creado exitosamente con ID {cliente_id} (Status 201).")
 
     print("\n=== 3. Probando validación en POST /api/clientes (Email inválido) ===")
@@ -55,14 +55,15 @@ def test_api_rest():
         "telefono": "123"
     })
     assert res_invalido.status_code == 400
-    assert res_invalido.get_json()["exito"] is False
+    assert res_invalido.get_json()["code"] == 400
     print("  [OK] Rechazó email inválido con status 400.")
 
     print("\n=== 4. Probando GET /api/clientes/<id> (Consultar por ID) ===")
     res = client.get(f"/api/clientes/{cliente_id}")
     assert res.status_code == 200
     json_data = res.get_json()
-    assert json_data["datos"]["nombre"] == "Carlos"
+    assert json_data["code"] == 200
+    assert json_data["data"]["nombre"] == "Carlos"
     print("  [OK] Cliente consultado correctamente por ID (Status 200).")
 
     print("\n=== 5. Probando PUT /api/clientes/<id> (Modificar cliente) ===")
@@ -73,15 +74,16 @@ def test_api_rest():
     res = client.put(f"/api/clientes/{cliente_id}", json=cambios)
     assert res.status_code == 200
     json_data = res.get_json()
-    assert json_data["datos"]["telefono"] == "555-9999"
-    assert json_data["datos"]["apellido"] == "Santana Modificado"
-    assert json_data["datos"]["nombre"] == "Carlos" # Conserva nombre
+    assert json_data["code"] == 200
+    assert json_data["data"]["telefono"] == "555-9999"
+    assert json_data["data"]["apellido"] == "Santana Modificado"
+    assert json_data["data"]["nombre"] == "Carlos" # Conserva nombre
     print("  [OK] Cliente modificado exitosamente (Status 200).")
 
     print("\n=== 6. Probando GET /api/clientes/<id> inexistente ===")
     res = client.get("/api/clientes/99999")
     assert res.status_code == 404
-    assert res.get_json()["exito"] is False
+    assert res.get_json()["code"] == 404
     print("  [OK] Retorna 404 para ID inexistente.")
 
     # Limpieza

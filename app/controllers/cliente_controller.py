@@ -6,6 +6,7 @@ from app.services.cliente_service import (
     ClienteNoEncontradoError,
     ClienteValidacionError,
 )
+from app.models import ResponseDTO
 
 # Definimos el Blueprint para agrupar las rutas REST de clientes
 cliente_bp = Blueprint("clientes", __name__, url_prefix="/api/clientes")
@@ -23,42 +24,61 @@ class ClienteController:
 
     def listar_clientes(self) -> Response:
         """GET /api/clientes - Consulta todos los clientes."""
+        response_dto = ResponseDTO(
+            code=200,
+            message="Ok",
+            data=None,
+            total=None
+        )
         try:
             clientes = self.service.listar_clientes()
-            return jsonify({
-                "exito": True,
-                "mensaje": f"Se obtuvieron {len(clientes)} clientes correctamente.",
-                "total": len(clientes),
-                "datos": [c.to_dict() for c in clientes],
-            }), 200
+            response_dto.data = [cliente.to_dict() for cliente in clientes]
+            response_dto.total = len(clientes)
+            return jsonify(response_dto.to_dict()), 200
         except ClienteServiceError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": []}), 500
+            response_dto.code = 500
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 500
 
     def obtener_cliente(self, cliente_id: str) -> Response:
         """GET /api/clientes/<id> - Consulta un cliente por ID."""
+        response_dto = ResponseDTO(
+            code=200,
+            message="Ok",
+            data=None,
+            total=None
+        )
         try:
             cliente = self.service.buscar_por_id(cliente_id)
-            return jsonify({
-                "exito": True,
-                "mensaje": "Cliente encontrado.",
-                "datos": cliente.to_dict(),
-            }), 200
+            response_dto.data = cliente.to_dict()
+            response_dto.message = "Cliente encontrado."
+            return jsonify(response_dto.to_dict()), 200
         except ClienteNoEncontradoError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 404
+            response_dto.code = 404
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 404
         except ClienteValidacionError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 400
+            response_dto.code = 400
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 400
         except ClienteServiceError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 500
+            response_dto.code = 500
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 500
 
     def crear_cliente(self) -> Response:
         """POST /api/clientes - Crea un nuevo cliente a partir de un JSON."""
+        response_dto = ResponseDTO(
+            code=201,
+            message="Ok",
+            data=None,
+            total=None
+        )
         datos = request.get_json(silent=True)
         if not datos or not isinstance(datos, dict):
-            return jsonify({
-                "exito": False,
-                "mensaje": "El cuerpo de la petición debe ser un objeto JSON válido con los datos del cliente.",
-                "datos": None
-            }), 400
+            response_dto.code = 400
+            response_dto.message = "El cuerpo de la petición debe ser un objeto JSON válido con los datos del cliente."
+            return jsonify(response_dto.to_dict()), 400
 
         try:
             nuevo_cliente = self.service.crear_cliente(
@@ -69,39 +89,49 @@ class ClienteController:
                 activo=datos.get("activo", True),
                 cliente_id=datos.get("id"),
             )
-            return jsonify({
-                "exito": True,
-                "mensaje": f"Cliente '{nuevo_cliente.nombre} {nuevo_cliente.apellido}' creado exitosamente con ID {nuevo_cliente.id}.",
-                "datos": nuevo_cliente.to_dict(),
-            }), 201
+            response_dto.data = nuevo_cliente.to_dict()
+            response_dto.message = f"Cliente '{nuevo_cliente.nombre} {nuevo_cliente.apellido}' creado exitosamente con ID {nuevo_cliente.id}."
+            return jsonify(response_dto.to_dict()), 201
         except ClienteValidacionError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 400
+            response_dto.code = 400
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 400
         except ClienteServiceError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 500
+            response_dto.code = 500
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 500
 
     def modificar_cliente(self, cliente_id: str) -> Response:
         """PUT /api/clientes/<id> - Modifica la información básica de un cliente."""
+        response_dto = ResponseDTO(
+            code=200,
+            message="Ok",
+            data=None,
+            total=None
+        )
         datos = request.get_json(silent=True)
         if not datos or not isinstance(datos, dict):
-            return jsonify({
-                "exito": False,
-                "mensaje": "El cuerpo de la petición debe ser un objeto JSON válido con los campos a modificar.",
-                "datos": None
-            }), 400
+            response_dto.code = 400
+            response_dto.message = "El cuerpo de la petición debe ser un objeto JSON válido con los campos a modificar."
+            return jsonify(response_dto.to_dict()), 400
 
         try:
             cliente_actualizado = self.service.modificar_cliente(cliente_id, datos)
-            return jsonify({
-                "exito": True,
-                "mensaje": f"Cliente con ID {cliente_id} modificado exitosamente.",
-                "datos": cliente_actualizado.to_dict(),
-            }), 200
+            response_dto.data = cliente_actualizado.to_dict()
+            response_dto.message = f"Cliente con ID {cliente_id} modificado exitosamente."
+            return jsonify(response_dto.to_dict()), 200
         except ClienteNoEncontradoError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 404
+            response_dto.code = 404
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 404
         except ClienteValidacionError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 400
+            response_dto.code = 400
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 400
         except ClienteServiceError as e:
-            return jsonify({"exito": False, "mensaje": str(e), "datos": None}), 500
+            response_dto.code = 500
+            response_dto.message = str(e)
+            return jsonify(response_dto.to_dict()), 500
 
 
 def registrar_rutas(controller: Optional[ClienteController] = None) -> Blueprint:
