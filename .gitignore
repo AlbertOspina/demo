@@ -50,13 +50,13 @@ coverage.xml
 cover/
 
 # Environments / Virtual environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
+#.env
+#.venv
+#env/
+#venv/
+#ENV/
+#env.bak/
+#venv.bak/
 
 # Configuration files and local secrets
 *.env
