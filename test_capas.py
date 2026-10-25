@@ -86,6 +86,20 @@ def test_api_rest():
     assert res.get_json()["code"] == 404
     print("  [OK] Retorna 404 para ID inexistente.")
 
+    print("\n=== 7. Probando endpoints de main.py (create_app: raíz y 404) ===")
+    full_app = create_app()
+    full_client = full_app.test_client()
+
+    res_root = full_client.get("/")
+    assert res_root.status_code == 200
+    assert res_root.get_json()["code"] == 200
+    assert "aplicacion" in res_root.get_json()["data"]
+
+    res_not_found = full_client.get("/endpoint-no-existente")
+    assert res_not_found.status_code == 404
+    assert res_not_found.get_json()["code"] == 404
+    print("  [OK] Rutas de main.py devuelven ResponseDTO correctamente.")
+
     # Limpieza
     if test_csv.exists():
         test_csv.unlink()

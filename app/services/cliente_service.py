@@ -137,3 +137,19 @@ class ClienteService:
 
         if not telefono or not telefono.strip():
             raise ClienteValidacionError("El teléfono del cliente no puede estar vacío.")
+
+    def filtrar_clientes(self, termino: str) -> List[Cliente]:
+        """
+        Busca clientes por coincidencia parcial en nombre, apellido o email.
+        """
+        if not termino or not termino.strip():
+            return self.listar_clientes()
+
+        termino_norm = termino.strip().lower()
+        todos = self.listar_clientes()
+        return [
+            c for c in todos
+            if termino_norm in c.nombre.lower()
+            or termino_norm in c.apellido.lower()
+            or termino_norm in c.email.lower()
+        ]

@@ -1,40 +1,76 @@
 import os
+import logging
 from flask import Flask, jsonify
-from app.controllers.cliente_controller import registrar_rutas
+from dotenv import load_dotenv
+from app.controllers import cliente_bp, gemini_bp
+from app.models import ResponseDTO
+
+# Configuración de logging detallado para la aplicación y llamadas a la IA
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] [%(name)s] %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
+logger = logging.getLogger("app.main")
 
 
 def create_app() -> Flask:
     """Fábrica de la aplicación web Flask."""
+    # Cargar variables de entorno desde archivo .env si existe
+    load_dotenv()
+
     app = Flask(__name__)
 
-    # Registrar el Blueprint del controlador de clientes
-    bp = registrar_rutas()
-    app.register_blueprint(bp)
+    # 1. Registrar el Blueprint del controlador de clientes
+    app.register_blueprint(cliente_bp)
+
+    # 2. Registrar el Blueprint del controlador de Gemini (IA con Tools)
+    app.register_blueprint(gemini_bp)
 
     # Ruta raíz informativa con la documentación de los endpoints
     @app.route("/", methods=["GET"])
     def index():
-        return jsonify({
-            "aplicacion": "API REST de Gestión de Clientes",
-            "arquitectura": "Por capas (Controlador -> Servicio -> Repositorio)",
-            "persistencia": "Archivo CSV en resources/clientes.csv",
-            "endpoints": {
-                "GET /api/clientes": "Consultar todos los clientes registrados",
-                "GET /api/clientes/<id>": "Consultar cliente específico por ID",
-                "POST /api/clientes": "Crear un nuevo cliente (JSON con nombre, apellido, email, telefono, activo)",
-                "PUT /api/clientes/<id>": "Modificar datos de un cliente existente (JSON)"
+        response_dto = ResponseDTO(
+            code=200,
+            message="Ok",
+            data={
+                "aplicacion": "API REST de Gestión de Clientes con Asistente IA (Gemini)",
+                "arquitectura": "Por capas (Controlador -> Servicio -> Repositorio)",
+                "persistencia": "Archivo CSV en resources/clientes.csv",
+                "endpoints": {
+                    "GET /api/clientes": "Consultar todos los clientes registrados",
+                    "GET /api/clientes/<id>": "Consultar cliente específico por ID",
+                    "POST /api/clientes": "Crear un nuevo cliente (JSON con nombre, apellido, email, telefono, activo)",
+                    "PUT /api/clientes/<id>": "Modificar datos de un cliente existente (JSON)",
+                    "POST /api/gemini/consulta": "Consultar a la IA sobre clientes mediante lenguaje natural y Tools"
+                },
+                "estado": "activo"
             },
-            "estado": "activo"
-        }), 200
+            total=None
+        )
+        return jsonify(response_dto.to_dict()), 200
 
     # Manejo de rutas inexistentes (404)
     @app.errorhandler(404)
     def ruta_no_encontrada(error):
-        return jsonify({
-            "exito": False,
-            "mensaje": "Recurso no encontrado. Consulte GET / para ver los endpoints disponibles.",
-            "datos": None
-        }), 404
+        response_dto = ResponseDTO(
+            code=404,
+            message="Recurso no encontrado. Consulte GET / para ver los endpoints disponibles.",
+            data=None,
+            total=None
+        )
+        return jsonify(response_dto.to_dict()), 404
+
+    # Manejo de errores internos del servidor (500)
+    @app.errorhandler(500)
+    def error_servidor(error):
+        response_dto = ResponseDTO(
+            code=500,
+            message="Error interno del servidor.",
+            data=None,
+            total=None
+        )
+        return jsonify(response_dto.to_dict()), 500
 
     return app
 

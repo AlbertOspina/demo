@@ -8,9 +8,6 @@ from app.services.cliente_service import (
 )
 from app.models import ResponseDTO
 
-# Definimos el Blueprint para agrupar las rutas REST de clientes
-cliente_bp = Blueprint("clientes", __name__, url_prefix="/api/clientes")
-
 
 class ClienteController:
     """
@@ -134,24 +131,56 @@ class ClienteController:
             return jsonify(response_dto.to_dict()), 500
 
 
-def registrar_rutas(controller: Optional[ClienteController] = None) -> Blueprint:
-    """Registra y enlaza las rutas HTTP del Blueprint con los métodos del controlador."""
-    ctrl = controller or ClienteController()
+# Blueprint para agrupar las rutas REST de clientes
+cliente_bp = Blueprint("clientes", __name__, url_prefix="/api/clientes")
+_cliente_controller_default = ClienteController()
 
-    @cliente_bp.route("", methods=["GET"])
+
+@cliente_bp.route("", methods=["GET"])
+def listar_clientes_default():
+    return _cliente_controller_default.listar_clientes()
+
+
+@cliente_bp.route("/<cliente_id>", methods=["GET"])
+def obtener_cliente_default(cliente_id):
+    return _cliente_controller_default.obtener_cliente(cliente_id)
+
+
+@cliente_bp.route("", methods=["POST"])
+def crear_cliente_default():
+    return _cliente_controller_default.crear_cliente()
+
+
+@cliente_bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
+def modificar_cliente_default(cliente_id):
+    return _cliente_controller_default.modificar_cliente(cliente_id)
+
+
+def registrar_rutas_cliente(controller: Optional[ClienteController] = None) -> Blueprint:
+    """Crea y registra las rutas HTTP de un Blueprint con los métodos del controlador."""
+    if controller is None:
+        return cliente_bp
+
+    bp = Blueprint(f"clientes_{id(controller)}", __name__, url_prefix="/api/clientes")
+
+    @bp.route("", methods=["GET"])
     def listar():
-        return ctrl.listar_clientes()
+        return controller.listar_clientes()
 
-    @cliente_bp.route("/<cliente_id>", methods=["GET"])
+    @bp.route("/<cliente_id>", methods=["GET"])
     def obtener(cliente_id):
-        return ctrl.obtener_cliente(cliente_id)
+        return controller.obtener_cliente(cliente_id)
 
-    @cliente_bp.route("", methods=["POST"])
+    @bp.route("", methods=["POST"])
     def crear():
-        return ctrl.crear_cliente()
+        return controller.crear_cliente()
 
-    @cliente_bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
+    @bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
     def modificar(cliente_id):
-        return ctrl.modificar_cliente(cliente_id)
+        return controller.modificar_cliente(cliente_id)
 
-    return cliente_bp
+    return bp
+
+
+# Alias para retrocompatibilidad
+registrar_rutas = registrar_rutas_cliente
