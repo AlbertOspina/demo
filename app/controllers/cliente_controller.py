@@ -131,56 +131,26 @@ class ClienteController:
             return jsonify(response_dto.to_dict()), 500
 
 
-# Blueprint para agrupar las rutas REST de clientes
-cliente_bp = Blueprint("clientes", __name__, url_prefix="/api/clientes")
-_cliente_controller_default = ClienteController()
-
-
-@cliente_bp.route("", methods=["GET"])
-def listar_clientes_default():
-    return _cliente_controller_default.listar_clientes()
-
-
-@cliente_bp.route("/<cliente_id>", methods=["GET"])
-def obtener_cliente_default(cliente_id):
-    return _cliente_controller_default.obtener_cliente(cliente_id)
-
-
-@cliente_bp.route("", methods=["POST"])
-def crear_cliente_default():
-    return _cliente_controller_default.crear_cliente()
-
-
-@cliente_bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
-def modificar_cliente_default(cliente_id):
-    return _cliente_controller_default.modificar_cliente(cliente_id)
-
-
 def registrar_rutas_cliente(controller: Optional[ClienteController] = None) -> Blueprint:
-    """Crea y registra las rutas HTTP de un Blueprint con los métodos del controlador."""
-    if controller is None:
-        return cliente_bp
-
+    """Registra y enlaza las rutas HTTP del Blueprint con los métodos del controlador."""
+    # Si no pasan un controlador, crea uno por defecto aquí mismo
+    ctrl = controller or ClienteController()
     bp = Blueprint(f"clientes_{id(controller)}", __name__, url_prefix="/api/clientes")
 
     @bp.route("", methods=["GET"])
     def listar():
-        return controller.listar_clientes()
+        return ctrl.listar_clientes()
 
     @bp.route("/<cliente_id>", methods=["GET"])
     def obtener(cliente_id):
-        return controller.obtener_cliente(cliente_id)
+        return ctrl.obtener_cliente(cliente_id)
 
     @bp.route("", methods=["POST"])
     def crear():
-        return controller.crear_cliente()
+        return ctrl.crear_cliente()
 
     @bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
     def modificar(cliente_id):
-        return controller.modificar_cliente(cliente_id)
+        return ctrl.modificar_cliente(cliente_id)
 
     return bp
-
-
-# Alias para retrocompatibilidad
-registrar_rutas = registrar_rutas_cliente

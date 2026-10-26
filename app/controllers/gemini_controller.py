@@ -57,25 +57,15 @@ class GeminiController:
             return jsonify(response_dto.to_dict()), 500
 
 
-# Definición del Blueprint para agrupar las rutas REST de Gemini
-gemini_bp = Blueprint("gemini", __name__, url_prefix="/api/gemini")
-_gemini_controller_default = GeminiController()
-
-
-@gemini_bp.route("/consulta", methods=["POST"])
-def consultar_gemini():
-    return _gemini_controller_default.consultar()
-
-
 def registrar_rutas_gemini(controller: Optional[GeminiController] = None) -> Blueprint:
     """Crea y registra las rutas HTTP de un Blueprint con los métodos de GeminiController."""
-    if controller is None:
-        return gemini_bp
+    # Si no pasan un controlador, crea uno por defecto aquí mismo
+    ctrl = controller or GeminiController()
 
     bp = Blueprint(f"gemini_{id(controller)}", __name__, url_prefix="/api/gemini")
 
     @bp.route("/consulta", methods=["POST"])
     def consulta():
-        return controller.consultar()
+        return ctrl.consultar()
 
     return bp

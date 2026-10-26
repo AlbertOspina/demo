@@ -2,7 +2,7 @@ import os
 import logging
 from flask import Flask, jsonify
 from dotenv import load_dotenv
-from app.controllers import cliente_bp, gemini_bp
+from app.controllers import ClienteController, GeminiController, registrar_rutas_cliente, registrar_rutas_gemini
 from app.models import ResponseDTO
 
 # Configuración de logging detallado para la aplicación y llamadas a la IA
@@ -22,10 +22,10 @@ def create_app() -> Flask:
     app = Flask(__name__)
 
     # 1. Registrar el Blueprint del controlador de clientes
-    app.register_blueprint(cliente_bp)
+    app.register_blueprint(registrar_rutas_cliente(ClienteController()))
 
     # 2. Registrar el Blueprint del controlador de Gemini (IA con Tools)
-    app.register_blueprint(gemini_bp)
+    app.register_blueprint(registrar_rutas_gemini(GeminiController()))
 
     # Ruta raíz informativa con la documentación de los endpoints
     @app.route("/", methods=["GET"])
