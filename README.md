@@ -81,7 +81,7 @@ copy .env.example .env
 Y asigna tu API Key obtenida de Google AI Studio:
 ```env
 GEMINI_API_KEY=tu_api_key_aqui
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 PORT=5000
 ```
 
