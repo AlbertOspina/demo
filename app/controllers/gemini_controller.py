@@ -3,6 +3,7 @@ from typing import Optional
 from flask import Blueprint, request, jsonify, Response
 from app.services.gemini_service import GeminiService, GeminiServiceError
 from app.models import ResponseDTO
+from app.middlewares import requiere_autenticacion
 
 
 class GeminiController:
@@ -65,6 +66,7 @@ def registrar_rutas_gemini(controller: Optional[GeminiController] = None) -> Blu
     bp = Blueprint(f"gemini_{id(controller)}", __name__, url_prefix="/api/gemini")
 
     @bp.route("/consulta", methods=["POST"])
+    @requiere_autenticacion
     def consulta():
         return ctrl.consultar()
 

@@ -101,21 +101,32 @@ def test_gemini_capas_y_tools():
     app.register_blueprint(registrar_rutas_gemini(gemini_controller))
     client = app.test_client()
 
+    # 3.1 Probar sin autenticación -> 401
+    res_sin_auth = client.post("/api/gemini/consulta", json={"mensaje": "test"})
+    assert res_sin_auth.status_code == 401
+    assert res_sin_auth.get_json()["code"] == 401
+    print("  [OK] Rechazó petición sin cabecera con status 401.")
+
+    import os
+    from app.middlewares.auth import AUTH_HEADER_NAME, AUTH_ENV_VAR
+    os.environ[AUTH_ENV_VAR] = "gemini_token_test"
+    headers_auth = {AUTH_HEADER_NAME: "gemini_token_test"}
+
     peticion = {
         "mensaje": "¿Cuántos clientes tenemos?",
         "conversacion_id": "conv-web-123"
     }
-    res = client.post("/api/gemini/consulta", json=peticion)
+    res = client.post("/api/gemini/consulta", json=peticion, headers=headers_auth)
     assert res.status_code == 200
     json_data = res.get_json()
     assert json_data["code"] == 200
     assert json_data["data"]["conversacion_id"] == "conv-web-123"
     assert "respuesta" in json_data["data"]
-    print("  [OK] Endpoint REST respondió 200 con ResponseDTO válido.")
+    print("  [OK] Endpoint REST respondió 200 con ResponseDTO válido con Auth.")
 
     # 4. Probar validación de mensaje vacío
     print("\n=== 3. Probando validación de mensaje vacío ===")
-    res_vacio = client.post("/api/gemini/consulta", json={"mensaje": "   "})
+    res_vacio = client.post("/api/gemini/consulta", json={"mensaje": "   "}, headers=headers_auth)
     assert res_vacio.status_code == 400
     assert res_vacio.get_json()["code"] == 400
     print("  [OK] Validó correctamente el mensaje vacío con HTTP 400.")

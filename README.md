@@ -78,12 +78,32 @@ Crea un archivo `.env` en la raíz copiando la plantilla:
 ```bash
 copy .env.example .env
 ```
-Y asigna tu API Key obtenida de Google AI Studio:
+Y asigna tu API Key obtenida de Google AI Studio y el token de autenticación:
 ```env
 GEMINI_API_KEY=tu_api_key_aqui
 GEMINI_MODEL=gemini-3.5-flash-lite
 PORT=5000
+DEMO_API_AUTH=mi_token_secreto_123
 ```
+
+---
+
+## 🔒 Seguridad y Autenticación
+
+Los controladores de la API (`/api/clientes` y `/api/gemini`) están protegidos mediante el header:
+```http
+Demo-Api-Auth: <valor_configurado_en_DEMO_API_AUTH>
+```
+Si el header está ausente o no coincide con la variable `DEMO_API_AUTH` del archivo `.env`, la petición será rechazada con estado `HTTP 401 Unauthorized` en formato `ResponseDTO`:
+```json
+{
+  "code": 401,
+  "message": "Cabecera de autenticación 'Demo-Api-Auth' no proporcionada.",
+  "data": null,
+  "total": null
+}
+```
+*(Nota: El endpoint raíz `GET /` permanece público para fines de documentación y healthcheck).*
 
 ### 3. Iniciar el servidor web REST
 ```bash

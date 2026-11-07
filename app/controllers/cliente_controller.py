@@ -7,6 +7,7 @@ from app.services.cliente_service import (
     ClienteValidacionError,
 )
 from app.models import ResponseDTO
+from app.middlewares import requiere_autenticacion
 
 
 class ClienteController:
@@ -138,19 +139,27 @@ def registrar_rutas_cliente(controller: Optional[ClienteController] = None) -> B
     bp = Blueprint(f"clientes_{id(controller)}", __name__, url_prefix="/api/clientes")
 
     @bp.route("", methods=["GET"])
+    @requiere_autenticacion
     def listar():
         return ctrl.listar_clientes()
 
     @bp.route("/<cliente_id>", methods=["GET"])
+    @requiere_autenticacion
     def obtener(cliente_id):
         return ctrl.obtener_cliente(cliente_id)
 
     @bp.route("", methods=["POST"])
+    @requiere_autenticacion
     def crear():
         return ctrl.crear_cliente()
 
     @bp.route("/<cliente_id>", methods=["PUT", "PATCH"])
+    @requiere_autenticacion
     def modificar(cliente_id):
         return ctrl.modificar_cliente(cliente_id)
 
     return bp
+
+
+# Alias para retrocompatibilidad
+registrar_rutas = registrar_rutas_cliente
